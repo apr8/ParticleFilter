@@ -23,17 +23,20 @@ class Visuvalize:
     self.readMapFile()
    
     # create a distance table for the file
-    self.distanceTable = ray_casting.RayCasting(self.map_size_x / self.resolution, self.map_size_y / self.resolution, 180, 3, self.global_map)  
+    # self.distanceTable = ray_casting.RayCasting(self.map_size_x / self.resolution, self.map_size_y / self.resolution, 180, 3, self.global_map)  
 
   def readMapFile(self):
+
+    print 'Reading map file'
+    
     read_map = False
     flag = False
     i = 0
+
     for line in self.map_file:
       if 'global_mapsize_x' in line:
         line_split = line.split()
         self.map_size_x = int(line_split[-1]) 
-        print type(self.map_size_x), self.map_size_x
       if 'global_mapsize_y' in line:
         line_split = line.split()
         self.map_size_y = int(line_split[-1]) 
@@ -46,9 +49,12 @@ class Visuvalize:
       if 'autoshifted_y' in line:
         line_split = line.split()
         self.autoshifted_y= int(line_split[-1]) 
-      if 'global_map[0]' in line:
+      if 'global_map[0]:' in line:
+        line_split = line.split()
+        self.map_h= int(line_split[-1]) 
+        self.map_w= int(line_split[-2]) 
         read_map = True
-        self.global_map = np.zeros((self.map_size_x / self.resolution, self.map_size_y / self.resolution))
+        self.global_map = np.zeros((self.map_h, self.map_w))
  
       if read_map:
         if flag:
@@ -57,21 +63,32 @@ class Visuvalize:
           self.global_map[i] = decoded_data
           i = i + 1
         flag = True
+
     print "Done Loading the map"
-    self.img = cv2.cvtColor(np.float32(self.global_map), cv2.COLOR_GRAY2BGR)
-    cv2.imshow('image', self.img)
+    self.refreshImage()
+    #cv2.imshow('image', self.img)
     
     return
 
   def visuvalizeParticle(self, pose):
-   cv2.line(self.img, (pose[0], pose[1]), (int(pose[0] + 2 * ma.cos(pose[2])), int(pose[1] + 2 * ma.sin(pose[2]))) ,(5,0,255),5) 
-   cv2.circle(self.img, (100, 100), 10, (0,255,255), -1)
+
+   # using circles to detect particles
+   cv2.circle(self.img, (int(pose[1]), int(pose[0])), 1, (0,0,255), -1)
+   return 
     
   def visuvalizeLaser(self, laser_data, laser_pose):
+    
+    # Laser Data Range display
     for i in laser_data:
       x = laser_pose[0] + i * ma.cos(laser_pose[2])
       y = laser_pose[1] + i * ma.sin(laser_pose[2])
-      cv2.circle(self.img, (x, y), 1, (0,0,255), -1)
+      cv2.circle(self.img, (y, x), 1, (0,0,255), -1)
+    
+    return
+
+  def refreshImage(self):
+    self.img = cv2.cvtColor(np.float32(self.global_map), cv2.COLOR_GRAY2BGR)
+
 
 if __name__ == '__main__':
 

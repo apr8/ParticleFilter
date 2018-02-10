@@ -17,6 +17,7 @@ class RayCasting:
     self.m_y = int(m_y)
     self.m_th = int(m_theta)
     print 'Table max x:',m_x,'max y:',m_y,'max_th', -m_theta, ' ', m_theta
+    
     # initialize step size
     self.step = step_size
 
@@ -28,17 +29,19 @@ class RayCasting:
 
     # create a distance table
     self.createDistacleTable()
-    print 'Successfully Create a Table' 
+    
+    print 'Successfully Created a Table' 
     
   def createDistacleTable(self):
   
     print 'Creating Distance Table'
+    
     # iterate over x
     for i in range(0, self.m_x - 1, 1):
       # iterate over y
       for j in range(0, self.m_y - 1, 1):
         # Go inside only if the index has valid probability
-        if not (self.global_map[i][j] < 0):
+        if not (self.global_map[i][j] < 0.75):
    	  # iterate over theta
           for k in range(-self.m_th, self.m_th, 3):
             # calculate distance
@@ -53,13 +56,13 @@ class RayCasting:
     x_new = x
     y_new = y
 
-    if self.global_map[int(x_new)][int(y_new)] < 0:
+    if self.global_map[int(x_new)][int(y_new)] < 0.75:
       return 0
     
     while 0 <= int(x_new) < self.m_x and 0 <= int(y_new) < self.m_y:
+      
       # for safety check for obstacle in its own cell. if obstcle present then return
- 
-      if self.global_map[int(x_new)][int(y_new)] > 0.5 or self.global_map[int(x_new)][int(y_new)] < 0:
+      if self.global_map[int(x_new)][int(y_new)] < 0.75:
 	break
 
       x_new = x_new + self.step * ma.cos(ma.radians(th))
