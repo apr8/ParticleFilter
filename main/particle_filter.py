@@ -27,7 +27,7 @@ class Particle:
     
     # weight of the particle
     self.weight = w
-    print w
+    
     # initialize the motion model and mesurement model
     self.motion_model = motion_model.MotionModel(coef, [0, 0, 0], 'normal') 
     
@@ -107,11 +107,10 @@ class ParticleFilter:
         log_laser = log_data[1]
         log_rob_laser = log_data[3]
         for i in range(self.num):
-          #print 'Particle number:', i, self.particles[i].pose
           self.particles[i].propagateParticle(log_odom)
           self.particles[i].updateParticle(log_laser)
    	# TODO: resample step add for loop
-        #self.resampleParticleFilter() 
+        self.resampleParticleFilter() 
       # visuvalize the particles
       self.visuvalizeParticles()
       
@@ -140,22 +139,16 @@ class ParticleFilter:
     pf_new = []
     
     # create a random number bet 0 and 1/M
-    r = random.uniform(0, 1 / self.num)
-    # For testing TODO:remove later
-    #for i in range(self.num):
-    #  print 'Particle number:', i, self.particles[i].pose
+    r = random.uniform(0, 1.0 / self.num)
     c = pf[0].weight
-    #for i in range(self.num):
-    #  print 'Particle number:', i, self.particles[i].pose
     i = 0
     for m in range(self.num):
       # draw i with prob proportional to weight
-      u = r + m * 1 / self.num
+      u = r + m * 1.0 / self.num
       while u > c:
 	i = i + 1
         c = c + pf[i].weight
       #pf_new.append(Particle(pf[:], self.particles[i].motion_model.alpha[:], self.particles[i].weight)) 
-      #print 'c:',c,'r:',r,'i:',i
       pf_new.append(pf[i])
     self.particles = copy.copy(pf_new)
 
