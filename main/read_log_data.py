@@ -7,7 +7,7 @@ import re
 
 # write down all the constants for the file
 
-log_file_path = "/home/baby/gatech_spring18/stat_techniques_robotics/lab/lab_particlefilter/data/log/robotdata1.log"
+log_file_path = "/home/baby/gatech_spring18/stat_techniques_robotics/lab/lab_particlefilter/data/log/robotdata4.log"
 MIN_ANG = -ma.pi / 2
 MAX_ANG = ma.pi / 2
 MIN_RNG = 0.0
@@ -17,9 +17,9 @@ FREQ = 10
 
 class DataReader:
 
-  def __init__(self):
+  def __init__(self, file_path):
     # define the file path to read the logs from
-    self.log_file = log_file_path
+    self.log_file = file_path
     self.my_file = open(self.log_file, "r")
 
   def parseFile(self, line):
@@ -39,7 +39,7 @@ class DataReader:
          self.rob_laser_data.append(decoded_data[5])
 	 self.time_stamp = decoded_data[-1]
          return ['L', self.laser_data, self.odom_data, self.rob_laser_data, self.time_stamp]
-      
+
       # check for odom data
       elif line[0] is 'O':
         line_list = line.split()
@@ -54,4 +54,4 @@ class DataReader:
 if __name__ == "__main__":
   d = DataReader()
   for line in d.my_file:
-    print len(d.parseFile(line))  
+    print len(d.parseFile(line))
