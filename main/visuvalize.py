@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import ray_casting
-import rospy
 import math as ma
 import os
 import re
@@ -61,10 +60,13 @@ class Visuvalize:
         if flag:
           line_split = line.split()
           decoded_data = [float(j) for j in line_split]
-          self.global_map[i] = decoded_data
+          self.global_map[i,:] = decoded_data
           i = i + 1
         flag = True
-
+    #print 'global map', self.global_map
+    self.global_map = np.transpose(self.global_map)
+    self.global_map = np.flipud(self.global_map)
+    #print 'global_map after', self.global_map
     print "Done Loading the map"
     self.refreshImage()
     #cv2.imshow('image', self.img)
@@ -74,16 +76,26 @@ class Visuvalize:
   def visuvalizeParticle(self, pose):
 
    # using circles to detect particles
-   cv2.circle(self.img, (int(pose[1]), int(pose[0])), 1, (0,0,255), -1)
+   cv2.circle(self.img, (int(pose[1]), int(pose[0])), 3, (0,0,255), -1)
+   #cv2.circle(self.img, (100, 10), 3, (0,0,255), -1)
    return
 
-  def visuvalizeLaser(self, laser_data, laser_pose):
+  def visuvalizeLaserDots(self, pose):
 
+   # using circles to detect particles
+   cv2.circle(self.img, (int(pose[1]), int(pose[0])), 3, (255,0,255), -1)
+   #cv2.circle(self.img, (100, 10), 3, (0,0,255), -1)
+   return
+
+  def visuvalizeLaser(self, pose1, pose2):
+
+    lineThickness = 2
+    cv2.line(self.img, ( pose1[1], pose1[0]), (pose2[1], pose2[0]), (0,255,0), lineThickness)
     # Laser Data Range display
-    for i in laser_data:
-      x = laser_pose[0] + i * ma.cos(laser_pose[2])
-      y = laser_pose[1] + i * ma.sin(laser_pose[2])
-      cv2.circle(self.img, (y, x), 1, (0,0,255), -1)
+    #for i in laser_data:
+    #  x = laser_pose[0] + i * ma.cos(laser_pose[2])
+    #  y = laser_pose[1] + i * ma.sin(laser_pose[2])
+    #  cv2.circle(self.img, (y, x), 1, (0,0,255), -1)
 
     return
 
@@ -93,7 +105,8 @@ class Visuvalize:
 
 if __name__ == '__main__':
 
-  x = Visuvalize(map_file_path)
+  x = Visuvalize(map_file_path, 3, 0.5)
   x.visuvalizeParticle([400,400, 1.54])
   cv2.imshow('image', x.img)
+  x.visuvalizeParticle([100,10])
   cv2.waitKey(0)

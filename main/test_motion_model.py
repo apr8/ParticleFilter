@@ -14,9 +14,9 @@ import multiprocessing
 import numpy as np
 # default constants for the program
 
-NUM_PARTICLES = 1000
+NUM_PARTICLES = 1
 # for motion model
-alpha = [.0003, .001, .0005, .005]
+alpha = [.0009, .0005, .001, .0005]
 # map path file
 map_file_path = "/home/baby/gatech_spring18/stat_techniques_robotics/lab/lab_particlefilter/data/map/wean.dat"
 
@@ -102,9 +102,9 @@ class ParticleFilter:
       pose = [0, 0, 0]
 
       while not (self.visuvalize.global_map[int(pose[0]), int(pose[1])] == 1) :
-        pose[0] = random.uniform(0 , 800)
-        pose[1] = random.uniform(0 , 800)
-        pose[2] = random.uniform(-ma.pi , ma.pi)
+        pose[0] = 395
+        pose[1] = 390
+        pose[2] = 0
         #print 'initial_pose:',pose
 
       # visuvalize the pose
@@ -147,8 +147,8 @@ class ParticleFilter:
             self.isMoved = True
 
         for i in range(self.num):
-          # pass
-          self.moveAndUpdate(i, log_odom, log_laser)
+          pass
+          #self.moveAndUpdate(i, log_odom, log_laser)
           #thread = multiprocessing.Process(target = self.moveAndUpdate, args = (i, log_odom, log_laser))
           #thread.start()
           #thread.join()
@@ -187,7 +187,7 @@ class ParticleFilter:
   def visuvalizeParticles(self):
 
     # refresh the image
-    self.visuvalize.refreshImage()
+    #self.visuvalize.refreshImage()
 
     for i in range(self.num):
       pose_new = copy.copy(self.particles[i].pose)
@@ -237,3 +237,4 @@ if __name__ == "__main__":
   # run the particle filter
   pf.runParticleFilter()
   cv2.waitKey(0)
+

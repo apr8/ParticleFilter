@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import rospy
 import math as ma
 import os
 import re
@@ -28,24 +27,24 @@ class DataReader:
       if line[0] is 'L':
          line_list = line.split()
          decoded_data =[float(i) for i in (line_list[1:])]
- 	 # should use the odom data here as well
+         # should use the odom data here as well
          self.laser_data = decoded_data[6:-1]
-         self.laser_data[:] = [i / 100 for i in self.laser_data]
+         self.laser_data[:] = [i for i in self.laser_data]
          self.odom_data = decoded_data[0:2]
-         self.odom_data[:] = [i / 100 for i in self.odom_data]
+         self.odom_data[:] = [i for i in self.odom_data]
          self.odom_data.append(decoded_data[2])
          self.rob_laser_data = decoded_data[3:5]
-         self.rob_laser_data[:] = [i / 100 for i in self.rob_laser_data]
+         self.rob_laser_data[:] = [i for i in self.rob_laser_data]
          self.rob_laser_data.append(decoded_data[5])
-	 self.time_stamp = decoded_data[-1]
+         self.time_stamp = decoded_data[-1]
          return ['L', self.laser_data, self.odom_data, self.rob_laser_data, self.time_stamp]
 
       # check for odom data
       elif line[0] is 'O':
         line_list = line.split()
- 	decoded_data =[float(i) for i in (line_list[1:])]
+        decoded_data =[float(i) for i in (line_list[1:])]
         self.odom_data = decoded_data[:-2]
-        self.odom_data[:] = [i / 100 for i in self.odom_data]
+        self.odom_data[:] = [i for i in self.odom_data]
         self.odom_data.append(decoded_data[-2])
         self.time_stamp = decoded_data[-1]
         return ['O', self.odom_data, self.time_stamp]

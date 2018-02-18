@@ -1,11 +1,13 @@
 
-import rospy
 import math as ma
 import os
 import re
 import numpy as np
 import cv2
 import copy
+import time
+import threading
+import multiprocessing
 
 class RayCasting:
 
@@ -27,13 +29,23 @@ class RayCasting:
     # initialize map
     self.global_map = global_map
 
+    # time
+    self.start_time = time.time()
+
     # initialze the distance table
-    self.z_required = np.ndarray((m_x, m_y, 2 * m_theta), np.float32)
+    self.z_required = np.ndarray((m_x, m_y, int (2 * m_theta / rotation_search)), np.float32)
+
+    print 'size of distance table =', len(self.z_required)
+    print 'search_step = ',self.step
+    print 'rotation_search step = ', self.rotation_search
+
+    # create threads list
+    self.threads = []
 
     # create a distance table
-    self.createDistacleTable()
+    #self.createDistacleTable()
 
-    print 'Successfully Created a Table'
+    print 'Successfully Created a  Table'
 
   def createDistacleTable(self):
 
@@ -44,11 +56,35 @@ class RayCasting:
       # iterate over y
       for j in range(0, self.m_y - 1, 1):
         # Go inside only if the index has valid probability
-        if not (self.global_map[i][j] < 0.75):
-          # iterate over theta
-          for k in range(-self.m_th, self.m_th, self.rotation_search):
-            # calculate distance
-            self.z_required.itemset((i, j, k), copy.copy(self.calculateDistance(i, j, k)))
+        #self.z_required[i,j,:] =  self.calculateDistanceOverAngles(i,j)
+        if not (self.global_map[i][j] == -1):
+          #print 'i:',i,'j:',j,'z:',self.z_required[i+j,:]
+          self.calculateDistanceOverAngles(i, j)
+          #thread = RayCastingThread(i, j, self.m_th, self.rotation_search, self.step, self.global_map, self.z_required)
+          #thread = multiprocessing.Process(target = self.calculateDistanceOverAngles, args = (i,j))
+          #self.threads.append(thread)
+          #thread.start()
+          #thread.join()
+          #print 'started', thread.name
+
+    print 'Started all the threads'
+    #for t in self.threads:
+    #    t.join()
+    #print 'waiting for threads to finish'
+    print("--- %s seconds to create distance table ---" % (time.time() - self.start_time))
+    return
+
+  def calculateDistanceOverAngles(self, x, y):
+    z=[]
+    for k in range(0, 2 * self.m_th, self.rotation_search):
+      # calculate distance
+      z.append(self.calculateDistance(x, y, k))
+
+
+    if x==400 and y ==400:
+        print "All the angles for x and y", z[:]
+    self.z_required[x, y, :] = z[:]
+
     return
 
   def calculateDistance(self, x, y, th):
@@ -59,17 +95,21 @@ class RayCasting:
     x_new = x
     y_new = y
 
-    if self.global_map[int(x_new)][int(y_new)] < 0.75:
-      return 0
+    #if self.global_map[int(x_new)][int(y_new)] < 0.75:
+    #  return 0
 
-    while 0 <= int(x_new) < self.m_x and 0 <= int(y_new) < self.m_y:
+    while 0 <= int(x_new) < self.m_x and 0 <= int(y_new) < self.m_y and self.global_map[int(x_new)][int(y_new)] >= 0.65 :
 
       # for safety check for obstacle in its own cell. if obstcle present then return
-      if self.global_map[int(x_new)][int(y_new)] < 0.75:
-	break
+      #if self.global_map[int(x_new)][int(y_new)] <= 0.98:
+      #	    break
 
       x_new = x_new + self.step * ma.cos(ma.radians(th))
       y_new = y_new + self.step * ma.sin(ma.radians(th))
+      if x==400 and y==400:
+        print 'map_values',self.global_map[x_new][y_new]
+        print 'old x and y and th', x, y, th
+        print 'new x and y and th', x_new, y_new, th
 
     # calculate the distance moved
     dx = x_new - x
@@ -78,7 +118,7 @@ class RayCasting:
     # print for testing
     #print 'pose',x,y,'dist:',(ma.sqrt(pow(dx,2) + pow(dy,2)) / 10.0)
 
-    return (ma.sqrt(pow(dx,2) + pow(dy,2)) / 10.0)
+    return (ma.sqrt(pow(dx,2) + pow(dy,2)) * 10.0)
 
   def queryTable(self, x, y, th):
 
