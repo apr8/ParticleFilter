@@ -13,7 +13,7 @@ map_file_path = "/home/baby/gatech_spring18/stat_techniques_robotics/lab/lab_par
 
 class Visuvalize:
 
-  def __init__(self, map_file, rotation_search, step_search):
+   def __init__(self, map_file, rotation_search, step_search):
     # map file get
     self.map_file = open(map_file, 'r')
 
@@ -25,7 +25,7 @@ class Visuvalize:
     self.distance_table = ray_casting.RayCasting(self.map_size_x / self.resolution, self.map_size_y / self.resolution, 180, step_search, rotation_search, self.global_map)
 
 
-  def readMapFile(self):
+   def readMapFile(self):
 
     print 'Reading map file'
 
@@ -73,40 +73,47 @@ class Visuvalize:
 
     return
 
-  def visuvalizeParticle(self, pose):
+   def visuvalizeParticle(self, pose):
 
-   # using circles to detect particles
-   cv2.circle(self.img, (int(pose[1]), int(pose[0])), 3, (0,0,255), -1)
-   #cv2.circle(self.img, (100, 10), 3, (0,0,255), -1)
-   return
+       # using circles to detect particles
+       cv2.circle(self.img, (int(pose[1]), int(pose[0])), 3, (0,0,255), -1)
+       #cv2.circle(self.img, (100, 10), 3, (0,0,255), -1)
+       return
 
-  def visuvalizeLaserDots(self, pose):
+   def visuvalizeLaserDots(self, pose):
 
-   # using circles to detect particles
-   cv2.circle(self.img, (int(pose[1]), int(pose[0])), 3, (255,0,255), -1)
-   #cv2.circle(self.img, (100, 10), 3, (0,0,255), -1)
-   return
+       # using circles to detect particles
+       cv2.circle(self.img, (int(pose[1]), int(pose[0])), 3, (255,0,255), -1)
+       #cv2.circle(self.img, (100, 10), 3, (0,0,255), -1)
+       return
 
-  def visuvalizeLaser(self, pose1, pose2):
+   def visuvalizeLaserData(self, pose):
 
-    lineThickness = 2
-    cv2.line(self.img, ( pose1[1], pose1[0]), (pose2[1], pose2[0]), (0,255,0), lineThickness)
-    # Laser Data Range display
-    #for i in laser_data:
-    #  x = laser_pose[0] + i * ma.cos(laser_pose[2])
-    #  y = laser_pose[1] + i * ma.sin(laser_pose[2])
-    #  cv2.circle(self.img, (y, x), 1, (0,0,255), -1)
+       # using circles to detect particles
+       cv2.circle(self.img, (int(pose[1]), int(pose[0])), 3, (255,0,0), -1)
+       #cv2.circle(self.img, (100, 10), 3, (0,0,255), -1)
+       return
 
-    return
+   def visuvalizeLaser(self, pose1, pose2):
 
-  def refreshImage(self):
+        lineThickness = 2
+        cv2.line(self.img, ( pose1[1], pose1[0]), (pose2[1], pose2[0]), (0,255,0), lineThickness)
+        # Laser Data Range display
+        #for i in laser_data:
+        #  x = laser_pose[0] + i * ma.cos(laser_pose[2])
+        #  y = laser_pose[1] + i * ma.sin(laser_pose[2])
+        #  cv2.circle(self.img, (y, x), 1, (0,0,255), -1)
+
+        return
+
+   def refreshImage(self):
     self.img = cv2.cvtColor(np.float32(self.global_map), cv2.COLOR_GRAY2BGR)
     return
 
 if __name__ == '__main__':
 
-  x = Visuvalize(map_file_path, 3, 0.5)
-  x.visuvalizeParticle([400,400, 1.54])
-  cv2.imshow('image', x.img)
-  x.visuvalizeParticle([100,10])
-  cv2.waitKey(0)
+  x = Visuvalize(map_file_path, 1, 0.5)
+  #x.visuvalizeParticle([400,400, 1.54])
+  #cv2.imshow('image', x.img)
+  #x.visuvalizeParticle([100,10])
+  #cv2.waitKey(0)

@@ -8,7 +8,7 @@ import copy
 import time
 import threading
 import multiprocessing
-
+#import pdb; pdb.set_trace()
 class RayCasting:
 
   def __init__(self, m_x, m_y, m_theta, step_size, rotation_search, global_map):
@@ -33,7 +33,7 @@ class RayCasting:
     self.start_time = time.time()
 
     # initialze the distance table
-    self.z_required = np.ndarray((m_x, m_y, int (2 * m_theta / rotation_search)), np.float32)
+    self.z_required = np.ndarray((m_x, m_y, int (2 * m_theta)), np.float32)
 
     print 'size of distance table =', len(self.z_required)
     print 'search_step = ',self.step
@@ -41,6 +41,7 @@ class RayCasting:
 
     # create threads list
     self.threads = []
+    #np.save('distance_table_new.pyc', self.z_required)
 
     # create a distance table
     #self.createDistacleTable()
@@ -52,12 +53,12 @@ class RayCasting:
     print 'Creating Distance Table'
 
     # iterate over x
-    for i in range(0, self.m_x - 1, 1):
+    for i in range(0, self.m_x):
       # iterate over y
-      for j in range(0, self.m_y - 1, 1):
+      for j in range(0, self.m_y):
         # Go inside only if the index has valid probability
         #self.z_required[i,j,:] =  self.calculateDistanceOverAngles(i,j)
-        if not (self.global_map[i][j] == -1):
+        if (self.global_map[i][j] >= 0.9):
           #print 'i:',i,'j:',j,'z:',self.z_required[i+j,:]
           self.calculateDistanceOverAngles(i, j)
           #thread = RayCastingThread(i, j, self.m_th, self.rotation_search, self.step, self.global_map, self.z_required)
@@ -66,23 +67,24 @@ class RayCasting:
           #thread.start()
           #thread.join()
           #print 'started', thread.name
-
-    print 'Started all the threads'
+          print i,j
+    #print 'Started all the threads'
     #for t in self.threads:
     #    t.join()
     #print 'waiting for threads to finish'
     print("--- %s seconds to create distance table ---" % (time.time() - self.start_time))
+    np.save('distance_table',self.z_required)
     return
 
   def calculateDistanceOverAngles(self, x, y):
     z=[]
-    for k in range(0, 2 * self.m_th, self.rotation_search):
+    for k in range(0, 2 * self.m_th, 1):
       # calculate distance
       z.append(self.calculateDistance(x, y, k))
 
 
-    if x==400 and y ==400:
-        print "All the angles for x and y", z[:]
+    #if x==400 and y ==400:
+    #    print "All the angles for x and y", z[:]
     self.z_required[x, y, :] = z[:]
 
     return
@@ -98,18 +100,14 @@ class RayCasting:
     #if self.global_map[int(x_new)][int(y_new)] < 0.75:
     #  return 0
 
-    while 0 <= int(x_new) < self.m_x and 0 <= int(y_new) < self.m_y and self.global_map[int(x_new)][int(y_new)] >= 0.65 :
+    while 0 <= int(x_new) < self.m_x and 0 <= int(y_new) < self.m_y :
 
       # for safety check for obstacle in its own cell. if obstcle present then return
-      #if self.global_map[int(x_new)][int(y_new)] <= 0.98:
-      #	    break
+      if self.global_map[int(x_new)][int(y_new)] <= 0.15:
+      	    break
 
       x_new = x_new + self.step * ma.cos(ma.radians(th))
       y_new = y_new + self.step * ma.sin(ma.radians(th))
-      if x==400 and y==400:
-        print 'map_values',self.global_map[x_new][y_new]
-        print 'old x and y and th', x, y, th
-        print 'new x and y and th', x_new, y_new, th
 
     # calculate the distance moved
     dx = x_new - x

@@ -14,7 +14,7 @@ import multiprocessing
 import numpy as np
 # default constants for the program
 
-NUM_PARTICLES = 1
+NUM_PARTICLES = 2
 # for motion model
 alpha = [.0009, .0005, .001, .0005]
 # map path file
@@ -101,10 +101,15 @@ class ParticleFilter:
     for i in range(self.num):
       pose = [0, 0, 0]
 
-      while not (self.visuvalize.global_map[int(pose[0]), int(pose[1])] == 1) :
-        pose[0] = 395
-        pose[1] = 390
-        pose[2] = 0
+      #while not (self.visuvalize.global_map[int(pose[0]), int(pose[1])] == 1) :
+      if i == 0:
+            pose[0] = 395
+            pose[1] = 390
+            pose[2] = 0
+      else:
+            pose[0] = 395
+            pose[1] = 200
+            pose[2] = 0
         #print 'initial_pose:',pose
 
       # visuvalize the pose

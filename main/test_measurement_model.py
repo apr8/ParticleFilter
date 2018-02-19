@@ -13,10 +13,10 @@ import measurement_model
 import multiprocessing
 import numpy as np
 # default constants for the program
-
+z_test = []
 NUM_PARTICLES = 1
 # for motion model
-alpha = [.0003, .001, .0005, .005]
+alpha = [.0009, .0005, .001, .0005]
 # map path file
 map_file_path = "/home/baby/gatech_spring18/stat_techniques_robotics/lab/lab_particlefilter/data/map/wean.dat"
 
@@ -27,7 +27,6 @@ log_path = "/home/baby/gatech_spring18/stat_techniques_robotics/lab/lab_particle
 rotation_step = 5
 step_search = 0.5
 
-z_test = []
 # query step distance table for measurement model
 class Particle:
 
@@ -53,12 +52,12 @@ class Particle:
 
   def updateParticle(self, curr_laser):
     # TODO: sensor model updates the weight
-    z_test = copy.copy(self.measurement_model.measurement_probability(curr_laser[:], self.pose[:]))
+    [z_test, self.weight] = copy.copy(self.measurement_model.measurement_probability(curr_laser[:], self.pose[:]))
     return z_test
 
 class ParticleFilter:
 
-  def __init__(self, map_file, num, alpha, log_file_path, r_step, s_search):
+  def __init__(self,  map_file, num, alpha, log_file_path, r_step, s_search):
 
     print 'Intializing particle filter'
     # TODO: load the map first
@@ -103,12 +102,9 @@ class ParticleFilter:
       pose = [0, 0, 0]
 
       while not (self.visuvalize.global_map[int(pose[0]), int(pose[1])] == 1) :
-        #pose[0] = random.uniform(0 , 800)
-        #pose[1] = random.uniform(0 , 800)
-        pose[0] = 400
+        pose[0] = 380
         pose[1] = 400
         pose[2] = 0
-        #pose[2] = random.uniform(-ma.pi , ma.pi)
         #print 'initial_pose:',pose
 
       # visuvalize the pose
@@ -124,55 +120,54 @@ class ParticleFilter:
 
     print 'Running particle filter'
 
-    #for line in self.d.my_file:
-    while True:
-      x=float(raw_input('x= '))
-      y=float(raw_input('y= '))
-      th=float(raw_input('th= '))
+    for line in self.d.my_file:
 
-      ## refresh visuvalization in every step
-      self.particles[0].pose = [x,y,th]
-      #log_data = self.d.parseFile(line)
-      ## if data is odom propagate
-      #if log_data[0] == 'O':
-      #  print log_data[1]
-      #  log_odom = log_data[1]
-      #  diff = np.array(log_odom) - self.initial_odom
-      #  #print ma.sqrt(diff[0] * diff[0] + diff[1] * diff[1])
-      #  if ma.sqrt(diff[0] * diff[0] + diff[1] * diff[1]) > 10:
-      #      self.isMoved = True
-      #  for i in range(self.num):
-      #    self.particles[i].propagateParticle(log_odom)
-      ## if data is laser the use measurement model
-      #elif log_data[0] == 'L':
-      #  #threads = []
-      #  log_odom = log_data[2]
-      #  log_laser = log_data[1]
-      #  log_rob_laser = log_data[3]
-      #  print log_odom
-      #  diff = np.array(log_odom) - self.initial_odom
-      #  if ma.sqrt(diff[0] * diff[0] + diff[1] * diff[1]) > 10:
-      #      self.isMoved = True
+      # refresh visuvalization in every step
 
-      #  for i in range(self.num):
-      #    #pass
-      self.moveAndUpdate(0, [0,0,0], 180 * [1])
-      #    #thread = multiprocessing.Process(target = self.moveAndUpdate, args = (i, log_odom, log_laser))
-      #    #thread.start()
-      #    #thread.join()
-      #    #threads.append(thread)
-      #    #print 'teset'
-      #  #for t in threads:
-      #  #  t.join()
-      #  if self.isMoved:
-      #      print 'resampling'
-      #      # renormalize the weights before using it for resampling
-      #      self.calculateSumOfWeights()
-      #      # TODO: resample step add for loop
-      #      self.resampleParticleFilter(log_odom)
-      #      self.resetWeight()
+      log_data = self.d.parseFile(line)
+      # if data is odom propagate
+      if log_data[0] == 'O':
+        print log_data[1]
+        log_odom = log_data[1]
+        diff = np.array(log_odom) - self.initial_odom
+        #print ma.sqrt(diff[0] * diff[0] + diff[1] * diff[1])
+        if ma.sqrt(diff[0] * diff[0] + diff[1] * diff[1]) > 10:
+            self.isMoved = True
+        for i in range(self.num):
+          self.particles[i].propagateParticle(log_odom)
+      # if data is laser the use measurement model
+      elif log_data[0] == 'L':
+        #threads = []
+        log_odom = log_data[2]
+        log_laser = log_data[1]
+        log_rob_laser = log_data[3]
+        print log_odom
+        diff = np.array(log_odom) - self.initial_odom
+        if ma.sqrt(diff[0] * diff[0] + diff[1] * diff[1]) > 10:
+            self.isMoved = False
+        self.ll = log_laser
 
-      ## visuvalize the particles
+        for i in range(self.num):
+          #pass
+          self.moveAndUpdate(i, log_odom, log_laser)
+          print 'log_data', self.ll
+          print 'actual_data', self.z_test
+          #thread = multiprocessing.Process(target = self.moveAndUpdate, args = (i, log_odom, log_laser))
+          #thread.start()
+          #thread.join()
+          #threads.append(thread)
+          #print 'teset'
+        #for t in threads:
+        #  t.join()
+        if self.isMoved:
+            print 'resampling'
+            # renormalize the weights before using it for resampling
+            self.calculateSumOfWeights()
+            # TODO: resample step add for loop
+            self.resampleParticleFilter(log_odom)
+            self.resetWeight()
+
+      # visuvalize the particles
       self.visuvalizeParticles()
 
   def calculateSumOfWeights(self):
@@ -209,9 +204,17 @@ class ParticleFilter:
         x = pose_new[0] + j / 10 * ma.cos(pose_new[2] + ma.radians(-90 + ang))
         y = pose_new[1] + j / 10 * ma.sin(pose_new[2] + ma.radians(-90 + ang))
         ang = ang + self.rotation_step
-        print 'angle=', ma.degrees(pose_new[2] + ma.radians(-90 + ang))
+        #print 'angle=', ma.degrees(pose_new[2] + ma.radians(-90 + ang))
         self.visuvalize.visuvalizeLaserDots([int(x),int(y),ang])
         self.visuvalize.visuvalizeLaser([int(x),int(y),ang], pose_new)
+        ang1=0
+      for j in self.ll:
+        x = pose_new[0] + j / 10 * ma.cos(pose_new[2] + ma.radians(-90 + ang1))
+        y = pose_new[1] + j / 10 * ma.sin(pose_new[2] + ma.radians(-90 + ang1))
+        ang1 = ang1 + 1
+        #print 'angle=', ma.degrees(pose_new[2] + ma.radians(-90 + ang))
+        #self.visuvalize.visuvalizeLaserData([int(x),int(y),ang])
+        #self.visuvalize.visuvalizeLaser([int(x),int(y),ang], pose_new)
     cv2.imshow('image', self.visuvalize.img)
     cv2.waitKey(0)
 
@@ -254,4 +257,5 @@ if __name__ == "__main__":
   # run the particle filter
   pf.runParticleFilter()
   cv2.waitKey(0)
+
 
