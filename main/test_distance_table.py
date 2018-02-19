@@ -16,7 +16,8 @@ step_search = 0.5
 
 visuvalize = visuvalize.Visuvalize(map_file_path, rotation_step, step_search)
 
-measurement_model = measurement_model.MeasurementModel(visuvalize.global_map, visuvalize.distance_table, rotation_step)
+measurement_model = measurement_model.MeasurementModel(
+    visuvalize.global_map, visuvalize.distance_table, rotation_step)
 
 while True:
     print 'Give the pose to search'
@@ -34,14 +35,14 @@ while True:
     print 'distance = ', distance
     print 'global_map values', visuvalize.global_map[index_new[0]][index_new[1]]
     visuvalize.visuvalizeParticle(index[:])
-    visuvalize.visuvalizeParticle([x,y])
+    visuvalize.visuvalizeParticle([x, y])
     visuvalize.visuvalizeParticle(index_new[:])
-    visuvalize.visuvalizeParticle([x_new,y_new])
+    visuvalize.visuvalizeParticle([x_new, y_new])
     visuvalize.visuvalizeLaser(index[:], index_new[:])
     cv2.imshow('image', visuvalize.img)
     cv2.waitKey(0)
     visuvalize.refreshImage()
-    #for i in range(10):
+    # for i in range(10):
     #    th1 = 2 * ma.pi / 180 * rotation_step * i
     #    index1 = measurement_model.convertPoseToIndex([x, y, th1])
     #    print 'index:', index1
@@ -59,7 +60,3 @@ while True:
     #    cv2.imshow('image', visuvalize.img)
     #    cv2.waitKey(0)
     #    visuvalize.refreshImage()
-
-
-
-

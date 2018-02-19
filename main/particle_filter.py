@@ -29,6 +29,8 @@ rotation_step = 8
 step_search = 0.5
 
 # query step distance table for measurement model
+
+
 class Particle:
 
     def __init__(self, state, coef, w, global_map, table, rotation_step):
@@ -43,22 +45,29 @@ class Particle:
         self.motion_model = motion_model.MotionModel(coef, [0, 0, 0], 'normal')
 
         # measeurement model
-        self.measurement_model = measurement_model.MeasurementModel(global_map, table, rotation_step)
+        self.measurement_model = measurement_model.MeasurementModel(
+            global_map, table, rotation_step)
 
     def propagateParticle(self, curr_odom):
         # motion model progates for each particle
         # add sampler with map
-        self.pose = copy.copy(self.motion_model.odomModel(curr_odom[:], self.pose[:]))
+        self.pose = copy.copy(
+            self.motion_model.odomModel(
+                curr_odom[:], self.pose[:]))
         return
 
     def updateParticle(self, curr_laser, z_required):
-        # sensor model updates the weight, z_test is the actual range array for each pose of the particle
-        self.weight = copy.copy(self.measurement_model.measurement_probability(curr_laser[:], self.pose[:], z_required))
+        # sensor model updates the weight, z_test is the actual range array for
+        # each pose of the particle
+        self.weight = copy.copy(
+            self.measurement_model.measurement_probability(
+                curr_laser[:], self.pose[:], z_required))
         return
+
 
 class ParticleFilter:
 
-    def __init__(self,  map_file, num, alpha, log_file_path, r_step, s_search):
+    def __init__(self, map_file, num, alpha, log_file_path, r_step, s_search):
 
         print 'Intializing particle filter'
         # TODO: load the map first
@@ -108,7 +117,6 @@ class ParticleFilter:
         self.particles[i].updateParticle(log_laser, self.z_required)
         return
 
-
     def createInitialParticles(self):
         # initialze by creating n particles
         # generate samples only in free space based on the map
@@ -118,10 +126,11 @@ class ParticleFilter:
         for i in range(self.num):
             pose = [0, 0, 0]
 
-            while not (self.visuvalize.global_map[int(pose[0]), int(pose[1])] == 1 and 370 < pose[0] < 420 and  370 < pose[1] < 420):
-                pose[0] = random.uniform(0 , 800)
-                pose[1] = random.uniform(0 , 800)
-                pose[2] = random.uniform(-ma.pi , ma.pi)
+            while not (self.visuvalize.global_map[int(pose[0]), int(
+                    pose[1])] == 1 and 370 < pose[0] < 420 and 370 < pose[1] < 420):
+                pose[0] = random.uniform(0, 800)
+                pose[1] = random.uniform(0, 800)
+                pose[2] = random.uniform(-ma.pi, ma.pi)
                 #print 'initial_pose:',pose
 
             # visuvalize the pose
@@ -132,7 +141,14 @@ class ParticleFilter:
 
             # store each particle with pose, weight and number
             # Add desired coefficients
-            self.particles.append(Particle(self.pose_orig[:], self.alpha, 1.0 / self.num, self.visuvalize.global_map, self.visuvalize.distance_table, self.rotation_step))
+            self.particles.append(
+                Particle(
+                    self.pose_orig[:],
+                    self.alpha,
+                    1.0 / self.num,
+                    self.visuvalize.global_map,
+                    self.visuvalize.distance_table,
+                    self.rotation_step))
         cv2.waitKey(1)
 
     def runParticleFilter(self):
@@ -149,7 +165,7 @@ class ParticleFilter:
                 print log_data[1]
                 log_odom = log_data[1]
 
-                if self.start :
+                if self.start:
                     self.start = False
                     self.initial_odom = log_odom
 
@@ -158,17 +174,19 @@ class ParticleFilter:
                 #print ma.sqrt(diff[0] * diff[0] + diff[1] * diff[1])
 
                 # resampling check
-                if (ma.sqrt(diff[0] * diff[0] + diff[1] * diff[1]) > 23 or diff[2] > 0.05):
+                if (ma.sqrt(diff[0] * diff[0] + diff[1]
+                            * diff[1]) > 23 or diff[2] > 0.05):
                     self.isMoved = True
                     self.laser_count = 0
 
                 for i in range(self.num):
                     pass
-                    #self.particles[i].propagateParticle(log_odom)
+                    # self.particles[i].propagateParticle(log_odom)
 
             # if data is laser the use measurement model
             elif log_data[0] == 'L':
-                # alternatively cpuld use number of laser measurements to check for
+                # alternatively cpuld use number of laser measurements to check
+                # for
                 self.laser_count = self.laser_count + 1
 
                 # if threads are used
@@ -181,13 +199,14 @@ class ParticleFilter:
                 print log_odom
                 self.ll = log_laser
 
-                if self.start :
+                if self.start:
                     self.start = False
                     self.initial_odom = log_odom
 
                 # to check if the robot has moved
                 diff = np.array(log_odom) - self.initial_odom
-                if (ma.sqrt(diff[0] * diff[0] + diff[1] * diff[1]) > 23 and diff[2] > 0.05) :
+                if (ma.sqrt(diff[0] * diff[0] + diff[1]
+                            * diff[1]) > 23 and diff[2] > 0.05):
                     self.isMoved = True
                     self.laser_count = 0
 
@@ -198,9 +217,9 @@ class ParticleFilter:
                     # if threads are used
 
                     #thread = multiprocessing.Process(target = self.moveAndUpdate, args = (i, log_odom, log_laser))
-                    #thread.start()
-                    #thread.join()
-                    #threads.append(thread)
+                    # thread.start()
+                    # thread.join()
+                    # threads.append(thread)
                 if self.isMoved:
                     print 'resampling'
                     # renormalize the weights before using it for resampling
@@ -218,7 +237,7 @@ class ParticleFilter:
         # loop over all the samples to calculate
         pf = copy.copy(self.particles)
         w_sum = 0.0
-        for i in range(self.num) :
+        for i in range(self.num):
             w_sum = w_sum + copy.copy(pf[i].weight)
             self.w_dict[i] = copy.copy(pf[i].weight)
         # normalize these weights
@@ -239,11 +258,18 @@ class ParticleFilter:
         for i in max_keys:
             pf = copy.copy(self.particles)
             pose = pf[i].pose[:]
-            for j in range(0,100):
+            for j in range(0, 100):
                 x = random.uniform(pose[0] - 150, pose[0] + 150)
                 y = random.uniform(pose[1] - 150, pose[1] + 150)
                 th = random.uniform(pose[2] - 0.5, pose[2] + 0.5)
-                self.particles.append(Particle([x, y, th], pf[i].motion_model.alpha[:], pf[i].weight, self.visuvalize.global_map, self.visuvalize.distance_table, self.rotation_step))
+                self.particles.append(Particle([x,
+                                                y,
+                                                th],
+                                               pf[i].motion_model.alpha[:],
+                                               pf[i].weight,
+                                               self.visuvalize.global_map,
+                                               self.visuvalize.distance_table,
+                                               self.rotation_step))
 
     def resetWeight(self):
 
@@ -270,7 +296,7 @@ class ParticleFilter:
             #ref_angle = ma.pi / 2.0
             #ang = 0
             ##print 'z_test',self.z_test, pose_new
-            #for j in self.z_test:
+            # for j in self.z_test:
             #    x = pose_new[0] + j / 10 * ma.cos(pose_new[2] + ma.radians(-90 + ang))
             #    y = pose_new[1] + j / 10 * ma.sin(pose_new[2] + ma.radians(-90 + ang))
             #    ang = ang + self.rotation_step
@@ -279,9 +305,9 @@ class ParticleFilter:
             #    #self.visuvalize.visuvalizeLaser([int(x),int(y),ang], pose_new)i
             #    ang1=0
 
-            ## to display the lidar readings
+            # to display the lidar readings
 
-            #for j in self.ll:
+            # for j in self.ll:
             #    x = pose_new[0] + j / 10 * ma.cos(pose_new[2] + ma.radians(-90 + ang1))
             #    y = pose_new[1] + j / 10 * ma.sin(pose_new[2] + ma.radians(-90 + ang1))
             #    ang1 = ang1 + 1
@@ -321,15 +347,22 @@ class ParticleFilter:
 
         if self.generate_particles:
             print 'Generating random particles'
-            #self.generateRandomParticles()
+            # self.generateRandomParticles()
             self.generate_particles = False
+
 
 if __name__ == "__main__":
 
     # TODO: get all the required coefficients and parameters
 
     # Create a particle filter
-    pf = ParticleFilter(map_file_path, NUM_PARTICLES, alpha, log_path, rotation_step, step_search)
+    pf = ParticleFilter(
+        map_file_path,
+        NUM_PARTICLES,
+        alpha,
+        log_path,
+        rotation_step,
+        step_search)
 
     # initialize a set of particles
     pf.createInitialParticles()
